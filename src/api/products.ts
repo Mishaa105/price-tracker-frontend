@@ -31,3 +31,16 @@ export async function getProductPage(
     return response.json()
 }
 
+export async function searchGames(query: string): Promise<ProductCardDto[]> {
+    const response = await fetch(
+        `/api/v1/products/search?query=${encodeURIComponent(query)}`
+    )
+
+    if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+    }
+
+    return response.json()
+}
+
+

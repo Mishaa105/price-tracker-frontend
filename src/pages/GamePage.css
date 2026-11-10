@@ -134,9 +134,43 @@
     color: #d6d8e0 !important;
 }
 
-.game-description {
-    white-space: pre-line;
+
+.game-description-card {
+    background: #1e1e29;
+    border: 1px solid #30303d;
+    border-radius: 16px;
+    padding: 24px;
 }
+
+.game-description-card h2 {
+    margin: 0 0 16px;
+}
+
+.game-description {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #aeb2bf;
+    white-space: pre-line;
+    max-height: 150px;
+    overflow: hidden;
+    margin: 0;
+}
+
+.game-description--expanded {
+    max-height: none;
+}
+
+.description-toggle {
+    margin-top: 16px;
+    padding: 0;
+    background: none;
+    border: none;
+    color: #91a5ff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
 
 /* Мобильные экраны */
 
@@ -249,3 +283,11 @@
     }
 }
 
+.wishlist-button:not(:disabled) {
+    cursor: pointer;
+}
+
+.wishlist-button--added {
+    background: #264d3a;
+    border: 1px solid #39845b;
+}

@@ -2,6 +2,7 @@ import { useAuth } from '../auth/AuthContext'
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import './Header.css'
+import { isAdmin } from '../auth/roles'
 
 function Header() {
     const navigate = useNavigate()
@@ -53,6 +54,11 @@ function Header() {
                     {token ? (
                         <>
                             <Link to="/profile">Профиль</Link>
+
+                            {isAdmin(token) && (
+                                <Link to="/admin">Админ-панель</Link>
+                            )}
+
                             <button type="button" onClick={signOut}>
                                 Выйти
                             </button>

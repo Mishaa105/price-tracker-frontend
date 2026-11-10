@@ -14,7 +14,7 @@ export class ApiError extends Error {
     }
 }
 
-async function authorizedRequest(
+export async function authorizedRequest(
     url: string,
     token: string,
     options: RequestInit = {}

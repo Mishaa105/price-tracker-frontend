@@ -5,6 +5,7 @@ import GamePage from './pages/GamePage'
 import AuthPage from './pages/AuthPage'
 import Header from './components/Header'
 import { AuthProvider } from './auth/AuthContext'
+import AdminPage from './pages/AdminPage'
 
 function App() {
     return (
@@ -18,6 +19,7 @@ function App() {
                     <Route path="/login" element={<AuthPage mode="login" />} />
                     <Route path="/register" element={<AuthPage mode="register" />} />
                     <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/admin" element={<AdminPage />} />
                 </Routes>
             </BrowserRouter>
         </AuthProvider>

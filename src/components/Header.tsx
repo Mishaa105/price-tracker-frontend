@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import './Header.css'
 import { isAdmin } from '../auth/roles'
+import logo from '../assets/logo.svg'
 
 function Header() {
     const navigate = useNavigate()
@@ -33,7 +34,8 @@ function Header() {
         <header className="site-header">
             <div className="site-header__inner">
                 <Link to="/" className="site-header__logo">
-                    Price Tracker
+                    <img src={logo} alt="" className="site-header__logo-icon" />
+                    <span>Price Tracker</span>
                 </Link>
 
                 <form

@@ -109,3 +109,38 @@
 .game-card__offer strong {
     font-size: 18px;
 }
+
+
+.game-card__price-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+
+}
+
+.game-card__price-row .discount-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 90px;
+    height: 32px;
+    box-sizing: border-box;
+    padding: 0 14px;
+
+    margin-left: auto;
+    flex-shrink: 0;
+    align-self: center;
+
+    background: #753044;
+    color: #ffb1c0;
+
+    border-radius: 10px;
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1;
+    white-space: nowrap;
+}

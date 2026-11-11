@@ -18,7 +18,11 @@ const brands: Record<string, { label: string; color: string }> = {
     GTA_PLUS: {
         label: 'GTA+',
         color: '#a855f7'
-    }
+    },
+    PLAYSTATION_PLUS: {
+        label: 'PlayStation Plus',
+        color: '#facc15'
+    },
 }
 
 export function getBrandInfo(brand: string | null | undefined) {
@@ -26,7 +30,10 @@ export function getBrandInfo(brand: string | null | undefined) {
         return { label: 'Обычная цена', color: '#3b82f6' }
     }
 
-    const key = brand.trim().toUpperCase().replace(/[\s-]+/g, '_')
+    const key = brand.trim()
+        .toUpperCase()
+        .replace(/\+/g, '_PLUS')
+        .replace(/[\s-]+/g, '_')
 
     return brands[key] ?? {
         label: brand.replace(/_/g, ' '),

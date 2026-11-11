@@ -1,0 +1,67 @@
+
+.price-tooltip {
+    min-width: 220px;
+    max-width: 340px;
+    padding: 18px 20px;
+
+    background: #171923;
+    border: 1px solid #424657;
+    border-radius: 14px;
+
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+    color: #f5f6fa;
+}
+
+.price-tooltip__date {
+    color: #b6bfd4;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.price-tooltip__divider {
+    height: 1px;
+    background: #373b4c;
+    margin: 14px 0;
+}
+
+.price-tooltip__item + .price-tooltip__item {
+    border-top: 1px solid #373b4c;
+    margin-top: 14px;
+    padding-top: 14px;
+}
+
+.price-tooltip__brand {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+
+    color: #e2e7f3;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.price-tooltip__dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.price-tooltip__amount {
+    margin-top: 10px;
+    font-size: 23px;
+    font-weight: 700;
+}
+
+.price-tooltip__rub {
+    margin-top: 4px;
+    color: #a5b4fc;
+    font-size: 17px;
+    font-weight: 500;
+}
+
+.price-tooltip__note {
+    margin-top: 14px;
+    color: #8b93a9;
+    font-size: 12px;
+}

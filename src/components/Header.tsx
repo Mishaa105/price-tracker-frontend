@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router'
 import './Header.css'
 import { isAdmin } from '../auth/roles'
 import logo from '../assets/logo.svg'
+import Notifications from './Notifications'
 
 function Header() {
     const navigate = useNavigate()
@@ -53,8 +54,11 @@ function Header() {
 
 
                 <div className="site-header__actions">
+
                     {token ? (
                         <>
+                            <Notifications />
+
                             <Link to="/profile">Профиль</Link>
 
                             {isAdmin(token) && (
@@ -68,6 +72,7 @@ function Header() {
                     ) : (
                         <Link to="/login">Войти</Link>
                     )}
+
                 </div>
 
             </div>

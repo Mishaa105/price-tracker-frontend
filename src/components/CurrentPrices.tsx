@@ -2,6 +2,9 @@ import type { components } from '../types/api'
 import { useEffect, useState } from 'react'
 import { getCurrencyRates } from '../api/currencies'
 import type { ExchangeRate } from '../api/currencies'
+import { getBrandInfo } from '../utils/brands'
+import DiscountBadge from './DiscountBadge'
+import { toMajorUnits } from '../utils/money'
 
 type CurrentPricePoint = components['schemas']['CurrentPricePoint']
 
@@ -11,7 +14,7 @@ type CurrentPricesProps = {
 
 const regions = [
     { name: 'США', currency: 'USD' },
-    { name: 'Европа', currency: 'EUR' },
+    { name: 'Польша', currency: 'PLN' },
     { name: 'Украина', currency: 'UAH' },
     { name: 'Турция', currency: 'TRY' },
     { name: 'Индия', currency: 'INR' },
@@ -21,9 +24,11 @@ function formatPrice(amount: number, currency: string) {
     return new Intl.NumberFormat('ru-RU', {
         style: 'currency',
         currency,
-    }).format(amount / 100)
+        currencyDisplay: 'narrowSymbol',
+        minimumFractionDigits: currency === 'INR' ? 0 : 2,
+        maximumFractionDigits: 2
+    }).format(toMajorUnits(amount, currency))
 }
-
 function CurrentPrices({ prices }: CurrentPricesProps) {
 
     const [rates, setRates] = useState<ExchangeRate[]>([])
@@ -52,18 +57,22 @@ function CurrentPrices({ prices }: CurrentPricesProps) {
             {regionPrices.map((price, index) => {
                 const amount = price.discountPrice ?? price.originalPrice
 
+                const brandInfo = getBrandInfo(price.brand)
+
                 const rate = rates.find(
                     item => item.currency === region.currency
                 )?.exchangeRate
 
                 const priceRub = amount != null && rate != null && rate > 0
-                    ? (amount / 100) / rate
+                    ? toMajorUnits(amount, region.currency) / rate
                     : null
 
 
                 return (
                     <div key={index}>
-                        <span>{price.brand || 'Обычная цена'}: </span>
+                        <span style={{ color: brandInfo.color }}>
+                        {brandInfo.label}:
+                    </span>
 
                 {amount != null ? (
                     <>
@@ -73,6 +82,11 @@ function CurrentPrices({ prices }: CurrentPricesProps) {
                 )}
 
                     <strong>{formatPrice(amount, region.currency)}</strong>
+
+                        <DiscountBadge
+                            originalPrice={price.originalPrice}
+                            discountPrice={price.discountPrice}
+                        />
 
                         {priceRub != null && (
                             <small>

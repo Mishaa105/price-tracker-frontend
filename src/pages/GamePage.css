@@ -194,7 +194,7 @@
 
 .game-hero {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 36px;
     margin-bottom: 36px;
 }
@@ -290,4 +290,101 @@
 .wishlist-button--added {
     background: #264d3a;
     border: 1px solid #39845b;
+}
+
+
+/* Характеристики игры */
+
+.game-info-card {
+    background: #1e1e29;
+    border: 1px solid #30303d;
+    border-radius: 16px;
+    padding: 28px;
+}
+
+.game-info-card h2 {
+    margin: 0 0 28px;
+    font-size: 24px;
+}
+
+.game-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 48px;
+    row-gap: 24px;
+}
+
+.game-info-item:nth-child(5) {
+    grid-column: 1 / -1;
+    padding-bottom: 24px;
+    border-bottom: 1px solid #383846;
+}
+
+.game-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.game-info-item span {
+    color: #9299ad;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.game-info-item strong {
+    color: #f5f6fa;
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 650px) {
+    .game-info-card {
+        padding: 20px;
+    }
+
+    .game-info-grid {
+        grid-template-columns: 1fr;
+        row-gap: 20px;
+    }
+}
+
+
+.game-hero__details .wishlist-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 48px;
+    padding: 12px 22px;
+    line-height: 1;
+}
+
+.game-hero__details .wishlist-button svg {
+    display: block;
+    width: 21px;
+    height: 21px;
+    flex-shrink: 0;
+}
+
+.game-hero__details .wishlist-button span {
+    display: block;
+    margin: 0;
+    line-height: 21px;
+    white-space: nowrap;
+}
+
+.game-hero__details .wishlist-button--unavailable {
+    background: #30303d;
+    border: 1px solid #454559;
+    color: #aeb2bf;
+    opacity: 1;
+    cursor: not-allowed;
+}
+
+.game-hero__details .wishlist-button--unavailable:hover {
+    background: #30303d;
 }

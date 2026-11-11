@@ -1,10 +1,14 @@
-
-import { useState } from 'react'
+import { getBrandInfo } from '../utils/brands'
+import { useEffect, useState } from 'react'
 import {
     LineChart, Line, XAxis, YAxis,
     CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts'
 import type { ProductPage } from '../api/products'
+import { getCurrencyRates } from '../api/currencies'
+import type { ExchangeRate } from '../api/currencies'
+import './PriceHistoryChart.css'
+import { toMajorUnits } from '../utils/money'
 
 type PricePoint = NonNullable<ProductPage['prices']>[number]
 
@@ -12,16 +16,24 @@ type Props = {
     prices: PricePoint[]
 }
 
-const colors: Record<string, string> = {
-    'Обычная цена': '#3b82f6',
-    'PlayStation Plus': '#facc15',
-    'EA Play': '#22c55e',
-    'GTA+': '#a855f7'
-}
+function formatMoney(amount: number, currency: string): string {
+    const symbols: Record<string, string> = {
+        USD: '$',
+        EUR: '€',
+        UAH: '₴',
+        TRY: '₺',
+        INR: '₹',
+        RUB: '₽',
+        PLN: 'zł'
+    }
 
-const fallbackColors = [
-    '#f97316', '#ec4899', '#06b6d4', '#84cc16'
-]
+    const formatted = amount.toLocaleString('ru-RU', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    })
+
+    return `${formatted} ${symbols[currency] ?? currency}`
+}
 
 function PriceHistoryChart({ prices }: Props) {
     const currencies = [
@@ -38,6 +50,17 @@ function PriceHistoryChart({ prices }: Props) {
         ? selectedCurrency
         : currencies[0]
 
+    const [rates, setRates] = useState<ExchangeRate[]>([])
+
+    useEffect(() => {
+        getCurrencyRates()
+            .then(setRates)
+            .catch(console.error)
+    }, [])
+
+    const exchangeRate = rates.find(
+        rate => rate.currency === currency
+    )?.exchangeRate
 
     const grouped = new Map<number, Record<string, number>>()
 
@@ -64,7 +87,8 @@ function PriceHistoryChart({ prices }: Props) {
 
         const point = grouped.get(timestamp) ?? { date: timestamp }
 
-        point[price.brand ?? 'Обычная цена'] = amount / 100
+        const brandName = getBrandInfo(price.brand).label
+        point[brandName] = toMajorUnits(amount, currency)
         grouped.set(timestamp, point)
     }
 
@@ -80,6 +104,24 @@ function PriceHistoryChart({ prices }: Props) {
             )
         )
     ]
+
+    const changePoints = new Set<string>()
+
+    for (const brand of brands) {
+        let previousValue: number | undefined
+
+        data.forEach((point, index) => {
+            const value = point[brand]
+
+            if (value === undefined) return
+
+            if (previousValue === undefined || value !== previousValue) {
+                changePoints.add(`${brand}:${index}`)
+            }
+
+            previousValue = value
+        })
+    }
 
     return (
         <section className="price-history">
@@ -115,29 +157,120 @@ function PriceHistoryChart({ prices }: Props) {
 
                             <YAxis />
 
+
+
                             <Tooltip
-                                labelFormatter={value =>
-                                    new Date(Number(value)).toLocaleString('ru-RU')
-                                }
-                                formatter={value =>
-                                    `${Number(value).toFixed(2)} ${currency}`
-                                }
+                                cursor={{
+                                    stroke: '#64748b',
+                                    strokeWidth: 1,
+                                    strokeDasharray: '4 4'
+                                }}
+                                content={({ active, payload, label }) => {
+                                    if (!active || !payload?.length) return null
+
+                                    return (
+                                        <div className="price-tooltip">
+                                            <div className="price-tooltip__date">
+                                                {new Date(Number(label)).toLocaleDateString(
+                                                    'ru-RU',
+                                                    {
+                                                        day: 'numeric',
+                                                        month: 'long',
+                                                        year: 'numeric'
+                                                    }
+                                                )}
+                                            </div>
+
+                                            <div className="price-tooltip__divider" />
+
+                                            {payload.map((entry, index) => {
+                                                if (typeof entry.value !== 'number') {
+                                                    return null
+                                                }
+
+                                                const amount = entry.value
+
+                                                const rubPrice =
+                                                    currency === 'RUB'
+                                                        ? amount
+                                                        : exchangeRate != null && exchangeRate > 0
+                                                            ? amount / exchangeRate
+                                                            : null
+
+                                                return (
+                                                    <div
+                                                        key={`${entry.dataKey}-${index}`}
+                                                        className="price-tooltip__item"
+                                                    >
+                                                        <div className="price-tooltip__brand">
+                                <span
+                                    className="price-tooltip__dot"
+                                    style={{
+                                        backgroundColor: entry.color
+                                    }}
+                                />
+                                                            {entry.name}
+                                                        </div>
+
+                                                        <div className="price-tooltip__amount">
+                                                            {formatMoney(amount, currency)}
+                                                        </div>
+
+                                                        {rubPrice != null && (
+                                                            <div className="price-tooltip__rub">
+                                                                ≈ {formatMoney(rubPrice, 'RUB')}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )
+                                            })}
+
+                                            <div className="price-tooltip__note">
+                                                По текущему курсу
+                                            </div>
+                                        </div>
+                                    )
+                                }}
                             />
+
+
 
                             <Legend />
 
-                            {brands.map((brand, index) => (
+                            {brands.map(brand => (
                                 <Line
                                     key={brand}
                                     type="stepAfter"
                                     dataKey={brand}
                                     name={brand}
-                                    stroke={
-                                        colors[brand] ??
-                                        fallbackColors[index % fallbackColors.length]
-                                    }
+                                    stroke={getBrandInfo(brand).color}
                                     strokeWidth={2}
-                                    dot={{ r: 3 }}
+
+                                    dot={props => {
+                                        const { index, cx, cy, stroke } = props
+
+                                        if (
+                                            typeof index !== 'number' ||
+                                            typeof cx !== 'number' ||
+                                            typeof cy !== 'number' ||
+                                            !changePoints.has(`${brand}:${index}`)
+                                        ) {
+                                            return <g />
+                                        }
+
+                                        return (
+                                            <circle
+                                                cx={cx}
+                                                cy={cy}
+                                                r={5}
+                                                fill={stroke}
+                                                stroke="#16161f"
+                                                strokeWidth={2}
+                                            />
+                                        )
+                                    }}
+                                    activeDot={{ r: 8, strokeWidth: 2 }}
+
                                     connectNulls
                                 />
                             ))}

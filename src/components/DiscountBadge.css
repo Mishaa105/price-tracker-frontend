@@ -1,0 +1,17 @@
+.discount-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    align-self: flex-start;
+
+    padding: 5px 9px;
+    border-radius: 7px;
+
+    background: #5b2635;
+    color: #ff9cad;
+
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+}

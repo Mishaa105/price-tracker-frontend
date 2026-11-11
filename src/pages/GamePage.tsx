@@ -1,23 +1,30 @@
+import DOMPurify from 'dompurify'
 import './GamePage.css'
-import { useParams, useNavigate } from 'react-router'
-import { useEffect, useState } from 'react'
-import { getProductPage } from '../api/products'
-import type { ProductPage } from '../api/products'
+import DiscountBadge from '../components/DiscountBadge'
+import {useParams, useNavigate} from 'react-router'
+import {useEffect, useState} from 'react'
+import {getProductPage} from '../api/products'
+import type {ProductPage} from '../api/products'
 import CurrentPrices from '../components/CurrentPrices'
 import PriceHistoryChart from '../components/PriceHistoryChart'
-import { useAuth } from '../auth/AuthContext'
+import {useAuth} from '../auth/AuthContext'
 import {
     ApiError,
     getWishlist,
     addToWishlist,
     removeFromWishlist
 } from '../api/account'
+import {
+    formatGenres,
+    formatProductType,
+    formatLanguages
+} from '../utils/gameLabels'
 
 function GamePage() {
-    const { productId } = useParams()
+    const {productId} = useParams()
 
     const navigate = useNavigate()
-    const { token, signOut } = useAuth()
+    const {token, signOut} = useAuth()
 
     const [inWishlist, setInWishlist] = useState(false)
     const [wishlistLoading, setWishlistLoading] = useState(false)
@@ -151,26 +158,70 @@ function GamePage() {
                                 }).format(amount / 100)
                                 : 'Цена недоступна'}
                         </strong>
+
+                        <DiscountBadge
+                            originalPrice={mainPrice?.originalPrice}
+                            discountPrice={mainPrice?.discountPrice}
+                        />
+
+                        {mainPrice?.originalPrice != null &&
+                            mainPrice.discountPrice != null &&
+                            mainPrice.discountPrice < mainPrice.originalPrice && (
+                                <s>
+                                    {new Intl.NumberFormat('ru-RU', {
+                                        style: 'currency',
+                                        currency: 'USD'
+                                    }).format(mainPrice.originalPrice / 100)}
+                                </s>
+                            )}
                     </div>
+
 
 
                     <button
                         type="button"
-                        className={`wishlist-button ${inWishlist ? 'wishlist-button--added' : ''}`}
+                        className={`wishlist-button ${
+                            wishlistError
+                                ? 'wishlist-button--unavailable'
+                                : inWishlist
+                                    ? 'wishlist-button--added'
+                                    : ''
+                        }`}
                         onClick={handleWishlist}
-                        disabled={wishlistLoading || wishlistBusy}
+                        disabled={!!wishlistError || wishlistLoading || wishlistBusy}
+                        title={wishlistError || undefined}
                     >
-                        {wishlistLoading || wishlistBusy
-                            ? 'Подождите...'
-                            : inWishlist
-                                ? '♥ В списке желаемого'
-                                : '♡ В список желаемого'}
+                        <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill={inWishlist && !wishlistError ? 'currentColor' : 'none'}
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            aria-hidden="true"
+                        >
+                            {wishlistError ? (
+                                <>
+                                    <path d="M18 6 6 18" />
+                                    <path d="m6 6 12 12" />
+                                </>
+                            ) : (
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                            )}
+                        </svg>
+
+                        <span>
+        {wishlistLoading || wishlistBusy
+            ? 'Подождите...'
+            : wishlistError
+                ? 'Список желаемого недоступен'
+                : inWishlist
+                    ? 'В списке желаемого'
+                    : 'В список желаемого'}
+    </span>
                     </button>
-
-                    {wishlistError && (
-                        <p role="alert">{wishlistError}</p>
-                    )}
-
                 </div>
             </div>
 
@@ -179,16 +230,17 @@ function GamePage() {
                 <section className="game-description-card">
                     <h2>Описание</h2>
 
-                    <p className={
-                           descriptionExpanded
-                               ? 'game-description game-description--expanded'
-                               : 'game-description'
-                       }>
-                        {game.description
-                            .replace(/<br\s*\/?>/gi, '\n')
-                            .replace(/\n{3,}/g, '\n\n')
-                            .trim()}
-                    </p>
+                    <div
+                        className={
+                            descriptionExpanded
+                                ? 'game-description game-description--expanded'
+                                : 'game-description'
+                        }
+                        dangerouslySetInnerHTML={{
+                            __html: DOMPurify.sanitize(game.description)
+                        }}
+                    />
+
 
                     {game.description.length > 350 && (
                         <button
@@ -204,38 +256,64 @@ function GamePage() {
                 </section>
             )}
 
-            <p>Жанры: {game.genres?.join(', ')}</p>
-            <p>Издатель: {game.publisherName}</p>
 
-            {game.releaseDate && (
-                <p>
-                    Дата выхода:{' '}
-                    {new Date(game.releaseDate).toLocaleDateString('ru-RU')}
-                </p>
-            )}
+            <section className="game-info-card">
+                <h2>Характеристики</h2>
 
-            {game.averageRating != null && (
-                <p>
-                    Рейтинг: {game.averageRating}
-                    {' '}({game.ratingsCount ?? 0} оценок)
-                </p>
-            )}
+                <div className="game-info-grid">
+                    <div className="game-info-item">
+                        <span>Жанры</span>
+                        <strong>{formatGenres(game.genres)}</strong>
+                    </div>
 
-            {game.storeClassification && (
-                <p>Возрастная классификация: {game.storeClassification}</p>
-            )}
+                    <div className="game-info-item">
+                        <span>Издатель</span>
+                        <strong>{game.publisherName || 'Не указан'}</strong>
+                    </div>
 
-            <p>
-                Языки интерфейса: {game.screenLanguages?.join(', ')}
-            </p>
+                    <div className="game-info-item">
+                        <span>Дата выхода</span>
+                        <strong>
+                            {game.releaseDate
+                                ? new Date(game.releaseDate).toLocaleDateString('ru-RU')
+                                : 'Не указана'}
+                        </strong>
+                    </div>
 
-            <p>
-                Языки озвучки: {game.spokenLanguages?.join(', ')}
-            </p>
+                    <div className="game-info-item">
+                        <span>Рейтинг</span>
+                        <strong>
+                            {game.averageRating != null
+                                ? `${game.averageRating} ★ (${game.ratingsCount ?? 0} оценок)`
+                                : 'Нет оценок'}
+                        </strong>
+                    </div>
 
-            <CurrentPrices prices={game.currentPrices ?? []} />
+                    <div className="game-info-item">
+                        <span>Тип товара</span>
+                        <strong>{formatProductType(game.storeClassification)}</strong>
+                    </div>
 
-            <PriceHistoryChart prices={game.prices ?? []} />
+                    <div className="game-info-item">
+                        <span>Языки интерфейса</span>
+                        <strong>
+                            <strong>{formatLanguages(game.screenLanguages)}</strong>
+                        </strong>
+                    </div>
+
+                    <div className="game-info-item">
+                        <span>Языки озвучки</span>
+                        <strong>
+                            <strong>{formatLanguages(game.spokenLanguages)}</strong>
+                        </strong>
+                    </div>
+                </div>
+            </section>
+
+
+            <CurrentPrices prices={game.currentPrices ?? []}/>
+
+            <PriceHistoryChart prices={game.prices ?? []}/>
         </main>
     )
 }
